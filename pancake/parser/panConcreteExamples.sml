@@ -55,10 +55,22 @@ val treeEx1 = parse_pancake ex1;
 val ex2 = ‘if b & (a ^ c) & d {
              foo(1, <2, 3>);
            } else {
-             goo(4, 5, 6);
+             strb y, 8;
+             strb p, 9;
+             x = x + 1;
+             y = y + 1;
            }’;
 
 val treeEx2 = parse_pancake ex2;
+
+val testSeqOrder = ‘
+             strb y, 8;
+             strb p, 9;
+             x = x + 1;
+             y = y + 1;
+           ’;
+
+val treeTestSeqOrder = parse_pancake testSeqOrder;
 
 (** We also have a selection of boolean operators and
     a ‘return’ statement. *)
@@ -101,5 +113,55 @@ val treeEx5 = parse_pancake ex5;
 val exN = ‘x = b & a ^ c & d;’;
 
 val treeExN = parse_pancake exN;
+
+val uart_drv_putchar = '#UART_REG(x y k z);
+                        if k & TX_EMPTY {
+                          #UART_REG(x y k z);
+                        }';
+
+val treePutchar = parse_pancake uart_drv_putchar;
+
+
+(** This is a very broken copy of the putchar function in serial.c (serial sDDF). 
+Need to figure out here the memory management works as well as how functions are called. *)
+val uart_sddf_putchar = ‘var c_arr = 0 {
+                          var clen = 1 {
+                            var a_arr = 0 {
+                              var a_len = 0 {
+                                var temp_c = 0 {
+                                  var temp_clen = 0 {
+                                    var temp_a = 0 {
+                                      var temp_alen = 0 {
+                                       #internal_is_tx_fifo_busy(temp_c temp_clen temp_a temp_alen);
+                                        if temp_a == 1 {
+                                           return -1;
+                                        } else {
+                                           if c == 10 {
+                                              strb c_arr, 13;
+                                              #putchar_regs(c_arr clen a_arr alen);
+                                           }
+                                           while 1 == 1 {
+                                                 #internal_is_tx_fifo_busy(temp_c temp_clen temp_a temp_alen);
+                                                 if temp_a == 0 {
+                                                    break;
+                                                 }
+                                           }
+                                        }
+                                        strb c_arr, c;
+                                        #putchar_regs(c_arr clen a_arr alen);
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                          }’;
+
+val treeSDDFPutchar = parse_pancake uart_sddf_putchar;
+
+val addrTest = ‘if 2 >= 1 { x = 2; }’;
+
+val treeAddrTest = parse_pancake addrTest;
 
 val _ = export_theory();
