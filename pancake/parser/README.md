@@ -20,9 +20,3 @@ The Pancake parser.
 * for CakeML.
 *
 * Created by Craig McLaughlin on 6/5/2022.
-
-[panConcreteExamples.sml](panConcreteExamples.sml):
-*
-*
-* Some examples of Pancake concrete syntax.
-*
