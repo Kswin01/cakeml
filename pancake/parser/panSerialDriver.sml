@@ -117,12 +117,15 @@ val treeRawTx = parse_pancake rawTx;
 val handleTx = ‘var buffer = @base {
                     var buff_len = 0 {
                         var a_arr = @base + 32 {
-                            var a_len = 0 {
+                            var a_len = 2048 {
                                 while a_arr == 0 {
                                     #serial_driver_dequeue_used(buffer buff_len a_arr a_len);
                                     phys = ldb buffer;
-                                    rawTx(phys, len);
-                                    #serial_enqueue_avail(buffer buff_len a_arr a_len);
+                                    rawTx(phys, a_len);
+                                    buffer_addr = buff_len;
+                                    strb buffer, 1;
+                                    buff_len = 1;
+                                    #serial_enqueue_avail(buffer buff_len a_arr buffer_addr);
                                 }
                             }
                         }
@@ -137,8 +140,8 @@ val handleIRQ = ‘var getchar_c = @base {
                     var getchar_a = @base + 32 {
                       var getchar_alen = 0 {
                         #getchar(getchar_c getchar_clen getchar_a getchar_alen);
-                        gotChar = ldb getchar_a;
-                        if gotChar == -1 {
+                        got_char = ldb getchar_a;
+                        if got_char == -1 {
                           return -1;
                         } else {
                           while 1 == 1 {
@@ -147,7 +150,7 @@ val handleIRQ = ‘var getchar_c = @base {
                                 var a_arr = @base + 96 {
                                   var a_len = 0 {
                                     strb c_arr, 0;
-                                    strb a_arr, -1;
+                                    strb a_arr, 0;
                                     #serial_dequeue_avail(c_arr c_len a_arr a_len);
                                     dequeue_ret = ldb a_arr;
                                     if dequeue_ret == -1 {
@@ -158,10 +161,11 @@ val handleIRQ = ‘var getchar_c = @base {
                                     }
 
                                     var enqueue_c_arr = @base + 128 {
-                                      var enqueue_clen = 1 {
+                                      var enqueue_clen = 2 {
                                         var enqueue_a_arr = @base + 160 {
-                                          var enqueue_alen = 0 {
+                                          var enqueue_alen = a_len {
                                             strb enqueue_c_arr, 0;
+                                            strb enqueue_c_arr + 1, got_char;
                                             strb enqueue_a_arr, -1;
                                             #serial_enqueue_used(enqueue_c_arr enqueue_clen enqueue_a_arr enqueue_alen);
                                             enqueue_ret = ldb a_arr;
