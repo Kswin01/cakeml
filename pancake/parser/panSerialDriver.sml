@@ -96,17 +96,8 @@ val rawTx = ‘var i = 0 {
                     if temp < 0 {
                         break;
                     }
-                    var c = temp {
-                        var clen = 1 {
-                            var a = 0 {
-                                var alen = 1 {
-                                    while a == 0 {
-                                        #putchar_regs(c clen a alen);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    uart_sddf_putchar(temp);
+                    i = i + 1;
                     phys = phys + 1;
                 }
 }
@@ -114,18 +105,28 @@ val rawTx = ‘var i = 0 {
 
 val treeRawTx = parse_pancake rawTx;
 
-val handleTx = ‘var buffer = @base {
-                    var buff_len = 0 {
+val handleTx = ‘var c_arr = @base {
+                    var c_len = 0 {
                         var a_arr = @base + 32 {
                             var a_len = 2048 {
-                                while a_arr == 0 {
-                                    #serial_driver_dequeue_used(buffer buff_len a_arr a_len);
-                                    phys = ldb buffer;
-                                    rawTx(phys, a_len);
-                                    buffer_addr = buff_len;
-                                    strb buffer, 1;
-                                    buff_len = 1;
-                                    #serial_enqueue_avail(buffer buff_len a_arr buffer_addr);
+                                while 1 == 1 {
+                                    #serial_driver_dequeue_used(c_arr c_len a_arr a_len);
+                                    ret = ldb c_arr;
+                                    if ret == 0 {
+                                      return -1;
+                                    }
+
+                                    rawTx(a_arr, a_len);
+
+                                    strb c_arr, 1;
+                                    c_len = 1;
+                                    a_len = 0;
+                                    #serial_enqueue_avail(c_arr c_len a_arr a_len);
+
+                                    ret2 = ldb a_arr;
+                                    if ret2 <> 0 {
+                                      return - 1;
+                                    }
                                 }
                             }
                         }
@@ -137,18 +138,18 @@ val treeHandleTx = parse_pancake handleTx;
 
 val handleIRQ = ‘var getchar_c = @base {
                   var getchar_clen = 1 {
-                    var getchar_a = @base + 32 {
+                    var getchar_a = @base + 1 {
                       var getchar_alen = 0 {
                         #getchar(getchar_c getchar_clen getchar_a getchar_alen);
                         got_char = ldb getchar_a;
-                        if got_char == -1 {
+                        if got_char <> 0 {
                           return -1;
                         } else {
                           while 1 == 1 {
-                            var c_arr = @base + 64 {
+                            var c_arr = @base + 2 {
                               var c_len = 1 {
-                                var a_arr = @base + 96 {
-                                  var a_len = 0 {
+                                var a_arr = @base + 3 {
+                                  var a_len = 1 {
                                     strb c_arr, 0;
                                     strb a_arr, 0;
                                     #serial_dequeue_avail(c_arr c_len a_arr a_len);
@@ -160,9 +161,9 @@ val handleIRQ = ‘var getchar_c = @base {
                                       return -1;
                                     }
 
-                                    var enqueue_c_arr = @base + 128 {
+                                    var enqueue_c_arr = @base + 5 {
                                       var enqueue_clen = 2 {
-                                        var enqueue_a_arr = @base + 160 {
+                                        var enqueue_a_arr = @base + 6 {
                                           var enqueue_alen = a_len {
                                             strb enqueue_c_arr, 0;
                                             strb enqueue_c_arr + 1, got_char;
@@ -215,9 +216,8 @@ val treeInit = parse_pancake init;
 
 val handleRx = ‘var c_arr = @base {
             var clen = 0 {
-              var a_arr = @base + 32 {
+              var a_arr = @base + 1 {
                 var alen = 0 {
-                  strb a_arr, -1;
                   #increment_num_chars(c_arr clen a_arr alen);
                   increment_ret = ldb a_arr;
                   if increment_ret <> 0 {
