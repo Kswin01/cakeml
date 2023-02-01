@@ -28,6 +28,8 @@ extern void *cml_heap;
 extern void *cml_stack;
 extern void *cml_stackend;
 
+static char cml_memory[4096*1024*2];
+
 long time = 400;
 
 void ffiget_time_input (unsigned char *c, long clen, unsigned char *a, long alen) {
@@ -293,39 +295,39 @@ int main (int local_argc, char **local_argv) {
   char *stack_env = getenv("CML_STACK_SIZE");
   char *temp; //used to store remainder of strtoul parse
 
-  unsigned long sz = 1024*1024; // 1 MB unit
-  unsigned long cml_heap_sz = 1024 * sz;    // Default: 1 GB heap
-  unsigned long cml_stack_sz = 1024 * sz;   // Default: 1 GB stack
+  unsigned long sz = 4096*1024; // 4 MB unit
+  unsigned long cml_heap_sz = sz;    // Default: 1 GB heap
+  unsigned long cml_stack_sz = sz;   // Default: 1 GB stack
 
   // Read CML_HEAP_SIZE env variable (if present)
   // Warning: strtoul may overflow!
-  if(heap_env != NULL)
-  {
-    cml_heap_sz = strtoul(heap_env, &temp, 10);
-    cml_heap_sz *= sz; //heap size is read in units of MBs
-  }
+  // if(heap_env != NULL)
+  // {
+  //   cml_heap_sz = strtoul(heap_env, &temp, 10);
+  //   cml_heap_sz *= sz; //heap size is read in units of MBs
+  // }
 
-  if(stack_env != NULL)
-  {
-    cml_stack_sz = strtoul(stack_env, &temp, 10);
-    cml_stack_sz *= sz; //stack size is read in units of MBs
-  }
+  // if(stack_env != NULL)
+  // {
+  //   cml_stack_sz = strtoul(stack_env, &temp, 10);
+  //   cml_stack_sz *= sz; //stack size is read in units of MBs
+  // }
 
-  if(cml_heap_sz < sz || cml_stack_sz < sz) //At least 1MB heap and stack size
-  {
-    #ifdef STDERR_MEM_EXHAUST
-    fprintf(stderr,"Too small requested heap (%lu) or stack (%lu) size in bytes.\n",cml_heap_sz, cml_stack_sz);
-    #endif
-    exit(3);
-  }
+  // if(cml_heap_sz < sz || cml_stack_sz < sz) //At least 1MB heap and stack size
+  // {
+  //   #ifdef STDERR_MEM_EXHAUST
+  //   fprintf(stderr,"Too small requested heap (%lu) or stack (%lu) size in bytes.\n",cml_heap_sz, cml_stack_sz);
+  //   #endif
+  //   exit(3);
+  // }
 
-  if(cml_heap_sz + cml_stack_sz < 8192) // Global minimum heap/stack for CakeML. 4096 for 32-bit architectures
-  {
-    #ifdef STDERR_MEM_EXHAUST
-    fprintf(stderr,"Too small requested heap (%lu) + stack (%lu) size in bytes.\n",cml_heap_sz, cml_stack_sz);
-    #endif
-    exit(3);
-  }
+  // if(cml_heap_sz + cml_stack_sz < 8192) // Global minimum heap/stack for CakeML. 4096 for 32-bit architectures
+  // {
+  //   #ifdef STDERR_MEM_EXHAUST
+  //   fprintf(stderr,"Too small requested heap (%lu) + stack (%lu) size in bytes.\n",cml_heap_sz, cml_stack_sz);
+  //   #endif
+  //   exit(3);
+  // }
 
   /**
    *  CakeML and its default assembly wrapper expects the following memory layout:
@@ -345,16 +347,17 @@ int main (int local_argc, char **local_argv) {
    *  see `get_stack_heap_limit` in stack_removeProof
    **/
 
-  cml_heap = malloc(cml_heap_sz + cml_stack_sz); // allocate both heap and stack at once
+  // cml_heap = malloc(cml_heap_sz + cml_stack_sz); // allocate both heap and stack at once
 
-  if(cml_heap == NULL)
-  {
-    #ifdef STDERR_MEM_EXHAUST
-    fprintf(stderr,"malloc() failed to allocate sufficient CakeML heap and stack space.\n");
-    #endif
-    exit(3);
-  }
+  // if(cml_heap == NULL)
+  // {
+  //   #ifdef STDERR_MEM_EXHAUST
+  //   fprintf(stderr,"malloc() failed to allocate sufficient CakeML heap and stack space.\n");
+  //   #endif
+  //   exit(3);
+  // }
 
+  cml_heap = cml_memory;
   cml_stack = cml_heap + cml_heap_sz;
   cml_stackend = cml_stack + cml_stack_sz;
 
