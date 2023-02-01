@@ -63,24 +63,27 @@ val uart_sddf_putchar = ‘var c_arr = @base {
                                     var temp_a = @base + 3 {
                                       var temp_alen = 1 {
                                        #internal_is_tx_fifo_busy(temp_c temp_clen temp_a temp_alen);
+                                       var tx_fifo_ret  = 0{
                                        tx_fifo_ret = ldb temp_a;
-                                        if tx_fifo_ret <> 0 {
-                                           return -1;
-                                        } else {
-                                           if c == 10 {
-                                              strb c_arr, 13;
-                                              #putchar_regs(c_arr clen a_arr alen);
-                                           }
-                                           while 1 == 1 {
-                                                 #internal_is_tx_fifo_busy(temp_c temp_clen temp_a temp_alen);
-                                                 tx_fifo_ret2 = ldb temp_a;
-                                                 if tx_fifo_ret2 <> 1 {
-                                                    break;
-                                                 }
-                                           }
+                                          if tx_fifo_ret <> 0 {
+                                            return -1;
+                                          } else {
+                                            if c == 10 {
+                                                strb c_arr, 13;
+                                                #putchar_regs(c_arr clen a_arr alen);
+                                            }
+                                            while 1 == 1 {
+                                                  #internal_is_tx_fifo_busy(temp_c temp_clen temp_a temp_alen);
+                                                  
+                                                  tx_fifo_ret = ldb temp_a;
+                                                  if tx_fifo_ret <> 1 {
+                                                      break;
+                                                  }
+                                            }
+                                          }
+                                          strb c_arr, c;
+                                          #putchar_regs(c_arr clen a_arr alen);
                                         }
-                                        strb c_arr, c;
-                                        #putchar_regs(c_arr clen a_arr alen);
                                       }
                                     }
                                   }
@@ -93,6 +96,7 @@ val uart_sddf_putchar = ‘var c_arr = @base {
 val treeSDDFPutchar = parse_pancake uart_sddf_putchar;
 
 val rawTx = ‘var i = 0 {
+              var temp {
                 while i < len {
                     temp = ldb phys;
                     if temp < 0 {
@@ -102,7 +106,8 @@ val rawTx = ‘var i = 0 {
                     i = i + 1;
                     phys = phys + 1;
                 }
-}
+              }
+            }
 ’;
 
 val treeRawTx = parse_pancake rawTx;
@@ -112,23 +117,31 @@ val handleTx = ‘var c_arr = @base {
                         var a_arr = @base + 32 {
                             var a_len = 2048 {
                                 while 1 == 1 {
+                                  var ret = 0 {
                                     #serial_driver_dequeue_used(c_arr c_len a_arr a_len);
                                     ret = ldb c_arr;
                                     if ret == 0 {
                                       return -1;
                                     }
+                                  }
+                                  
+                                  var buff_len = 0 {
 
-                                    rawTx(a_arr, a_len);
+                                    buff_len = ((ldb c + 1) << 56) | ((ldb c + 2) << 48) | ((ldb c + 3) << 40) | ((ldb c + 4) << 32) | ((ldb c + 5) << 24) | ((ldb c + 6) << 16) | ((ldb c + 7) << 8) | (ldb c + 8);
 
-                                    strb c_arr, 1;
-                                    c_len = 1;
-                                    a_len = 0;
-                                    #serial_enqueue_avail(c_arr c_len a_arr a_len);
+                                    rawTx(a_arr, buff_len);
 
+                                  }
+                                  strb c_arr, 1;
+                                  c_len = 1;
+                                  #serial_enqueue_avail(c_arr c_len a_arr a_len);
+
+                                  var ret2 = 0 {
                                     ret2 = ldb a_arr;
                                     if ret2 <> 0 {
                                       return -1;
                                     }
+                                  }
                                 }
                             }
                         }
@@ -155,15 +168,13 @@ val handleIRQ = ‘var getchar_c = @base {
                                     strb c_arr, 0;
                                     strb a_arr, 0;
                                     #serial_dequeue_avail(c_arr c_len a_arr a_len);
+                                    var dequeue_ret = 0 {
                                     dequeue_ret = ldb a_arr;
-                                    if dequeue_ret == -1 {
-                                      break;
-                                    } 
-                                    if dequeue_ret <> 0 {
-                                      return -1;
+                                      if dequeue_ret <> 0 {
+                                        return -1;
+                                      }
                                     }
-
-                                    var enqueue_c_arr = @base + 5 {
+                                    var enqueue_c_arr = @base + 4 {
                                       var enqueue_clen = 2 {
                                         var enqueue_a_arr = @base + 6 {
                                           var enqueue_alen = a_len {
@@ -171,9 +182,11 @@ val handleIRQ = ‘var getchar_c = @base {
                                             strb enqueue_c_arr + 1, got_char;
                                             strb enqueue_a_arr, -1;
                                             #serial_enqueue_used(enqueue_c_arr enqueue_clen enqueue_a_arr enqueue_alen);
-                                            enqueue_ret = ldb a_arr;
-                                            if enqueue_ret <> 0 {
-                                              return -1;
+                                            var enqueue_ret = 0 {
+                                              enqueue_ret = ldb a_arr;
+                                              if enqueue_ret <> 0 {
+                                                return -1;
+                                              }
                                             }
                                           }
                                         }
@@ -221,9 +234,11 @@ val handleRx = ‘var c_arr = @base {
               var a_arr = @base + 1 {
                 var alen = 0 {
                   #increment_num_chars(c_arr clen a_arr alen);
-                  increment_ret = ldb a_arr;
-                  if increment_ret <> 0 {
-                    return -1;
+                  var increment_ret = 0 {
+                    increment_ret = ldb a_arr;
+                    if increment_ret <> 0 {
+                      return -1;
+                    }
                   }
                 }
               } 
