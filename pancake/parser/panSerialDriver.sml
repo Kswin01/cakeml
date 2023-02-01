@@ -189,6 +189,13 @@ val handleIRQ = ‘var getchar_c = @base {
 
 val treeHandleIRQ = parse_pancake handleIRQ;
 
+
+(** 
+This is currently going to be offloaded to the ffi file. We can only have one entry point
+into our pancake program and so we will only have the main with a switch case similair to 
+the current notified implementation. There is no point having the init function come into the 
+pancake program just to make an ffi call back to the c file.
+*)
 val init = ‘var c_arr = @base {
             var clen = 0 {
               var a_arr = @base + 32 {
@@ -225,10 +232,26 @@ val treeHandleRx = parse_pancake handleRx;
 
 
 (** 
-Need to figure out how to export this to be callable from the sel4CP. Need init and notified functions
-to be exposed.
+The main function will be our entry point into our pancake program. This will be called from 
+out ffi notified function whenever a notification comes in for our driver. This is because
+we can only have one entry point into our pancake program, and thus only one main function.
+This main function should have one argument, and that is the channel that notified us.
+
+If we have an IRQ, we will need to acknowledge on return to the notified function
 *)
-val notified = ‘
+val main = ‘
+  if ch == 1 {
+    handle_irq();
+    return;
+  }
+
+  if ch == 8 {
+    handle_tx();
+  }
+
+  if ch == 10 {
+    handle_rx();
+  }
 
 ’;
 
