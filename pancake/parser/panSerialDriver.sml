@@ -56,14 +56,15 @@ val treePutchar = parse_pancake uart_drv_putchar;
 Need to figure out here the memory management works as well as how functions are called. *)
 val uart_sddf_putchar = ‘var c_arr = @base {
                           var clen = 1 {
-                            var a_arr = @base + 32 {
-                              var a_len = 0 {
-                                var temp_c = @base + 64 {
-                                  var temp_clen = 0 {
-                                    var temp_a = @base + 96 {
-                                      var temp_alen = 0 {
+                            var a_arr = @base + 1 {
+                              var a_len = 1 {
+                                var temp_c = @base + 2 {
+                                  var temp_clen = 1 {
+                                    var temp_a = @base + 3 {
+                                      var temp_alen = 1 {
                                        #internal_is_tx_fifo_busy(temp_c temp_clen temp_a temp_alen);
-                                        if temp_a == 1 {
+                                       tx_fifo_ret = ldb temp_a;
+                                        if tx_fifo_ret <> 0 {
                                            return -1;
                                         } else {
                                            if c == 10 {
@@ -72,7 +73,8 @@ val uart_sddf_putchar = ‘var c_arr = @base {
                                            }
                                            while 1 == 1 {
                                                  #internal_is_tx_fifo_busy(temp_c temp_clen temp_a temp_alen);
-                                                 if temp_a == 0 {
+                                                 tx_fifo_ret2 = ldb temp_a;
+                                                 if tx_fifo_ret2 <> 1 {
                                                     break;
                                                  }
                                            }
@@ -125,7 +127,7 @@ val handleTx = ‘var c_arr = @base {
 
                                     ret2 = ldb a_arr;
                                     if ret2 <> 0 {
-                                      return - 1;
+                                      return -1;
                                     }
                                 }
                             }
