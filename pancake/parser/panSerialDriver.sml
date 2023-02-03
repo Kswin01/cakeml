@@ -91,6 +91,7 @@ val uart_sddf_putchar = ‘var c_arr = @base {
                               }
                             }
                           }
+                          return 0;
                           }’;
 
 val treeSDDFPutchar = parse_pancake uart_sddf_putchar;
@@ -102,7 +103,12 @@ val rawTx = ‘var i = 0 {
                     if temp < 0 {
                         break;
                     }
-                    uart_sddf_putchar(temp);
+                    var ret = 1 {
+                      while ret <> 0 {
+                        ret  uart_sddf_putchar(temp);
+                      }
+                    }
+
                     i = i + 1;
                     phys = phys + 1;
                 }
