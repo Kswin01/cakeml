@@ -65,7 +65,7 @@ val uart_sddf_putchar = ‘var c_arr = @base {
                                        #internal_is_tx_fifo_busy(temp_c temp_clen temp_a temp_alen);
                                        var tx_fifo_ret  = 0{
                                        tx_fifo_ret = ldb temp_a;
-                                          if tx_fifo_ret <> 0 {
+                                          if tx_fifo_ret == 1 {
                                             return -1;
                                           } else {
                                             if c == 10 {
@@ -119,7 +119,8 @@ val rawTx = ‘var i = 0 {
 val treeRawTx = parse_pancake rawTx;
 
 val handleTx = ‘var c_arr = @base {
-                    var c_len = 0 {
+                    var c_len = 1 {
+                        strb c_arr, 1;
                         var a_arr = @base + 32 {
                             var a_len = 2048 {
                                 while 1 == 1 {
@@ -133,9 +134,9 @@ val handleTx = ‘var c_arr = @base {
                                   
                                   var buff_len = 0 {
 
-                                    buff_len = ((ldb c + 1) << 56) | ((ldb c + 2) << 48) | ((ldb c + 3) << 40) | ((ldb c + 4) << 32) | ((ldb c + 5) << 24) | ((ldb c + 6) << 16) | ((ldb c + 7) << 8) | (ldb c + 8);
+                                    //buff_len = ((ldb c + 1) << 56) | ((ldb c + 2) << 48) | ((ldb c + 3) << 40) | ((ldb c + 4) << 32) | ((ldb c + 5) << 24) | ((ldb c + 6) << 16) | ((ldb c + 7) << 8) | (ldb c + 8);
 
-                                    rawTx(a_arr, buff_len);
+                                    rawTx(a_arr, 1);
 
                                   }
                                   strb c_arr, 1;
@@ -180,14 +181,13 @@ val handleIRQ = ‘var getchar_c = @base {
                                         return -1;
                                       }
                                     }
-                                    var enqueue_c_arr = @base + 4 {
+                                    var enqueue_c_arr = @base + 32 {
                                       var enqueue_clen = 2 {
-                                        var enqueue_a_arr = @base + 6 {
+                                        var enqueue_a_arr = @base + 34 {
                                           var enqueue_alen = a_len {
                                             strb enqueue_c_arr, 0;
                                             strb enqueue_c_arr + 1, got_char;
-                                            strb enqueue_a_arr, -1;
-                                            #serial_enqueue_used(enqueue_c_arr enqueue_clen enqueue_a_arr enqueue_alen);
+                                            #serial_enqueue_used(enqueue_c_arr enqueue_clen a_arr enqueue_alen);
                                             var enqueue_ret = 0 {
                                               enqueue_ret = ldb a_arr;
                                               if enqueue_ret <> 0 {
