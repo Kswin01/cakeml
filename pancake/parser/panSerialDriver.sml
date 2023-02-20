@@ -270,10 +270,12 @@ val main = ‘
 
   if ch == 8 {
     handle_tx();
+    return;
   }
 
   if ch == 10 {
     handle_rx();
+    return;
   }
 
 ’;
