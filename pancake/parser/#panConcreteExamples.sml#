@@ -53,8 +53,9 @@ val treeEx1 = parse_pancake ex1;
     functions. A struct value encloses expressions within chevrons
     (‘<>’). *)
 val ex2 = ‘if b & (a ^ c) & d {
-             foo(1, <2, 3>);
-	     x = x + 5;
+    	      var x = 0 {
+    	      	  x = foo(1, <2, 3>);
+		  }
            } else {
              strb y, 8;
              strb p, 9;
@@ -76,7 +77,7 @@ val treeTestSeqOrder = parse_pancake testSeqOrder;
 (** We also have a selection of boolean operators and
     a ‘return’ statement. *)
 (** FIXME: Add ‘true’ and ‘false’ to EBaseNT *)
-val ex3 = ‘if b & (a ^ c) & d { return 1; } else { return 0; }’;
+val ex3 = ‘if b & (a ^ c) & d { return true; } else { return false; }’;
 
 val treeEx3 = parse_pancake ex3;
 

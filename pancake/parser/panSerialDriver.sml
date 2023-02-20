@@ -105,7 +105,7 @@ val rawTx = ‘var i = 0 {
                     }
                     var ret = 1 {
                       while ret <> 0 {
-                        ret  uart_sddf_putchar(temp);
+                        ret = uart_sddf_putchar(temp);
                       }
                     }
 
