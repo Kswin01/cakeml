@@ -95,7 +95,7 @@ val uart_sddf_putchar = ‘var c_arr = @base {
                           }’;
 
 val treeSDDFPutchar = parse_pancake uart_sddf_putchar;
- 
+
 val rawTx = ‘var i = 0 {
               var temp {
                 while i < len {
@@ -105,7 +105,7 @@ val rawTx = ‘var i = 0 {
                     }
                     var ret = 1 {
                       while ret <> 0 {
-                       ret = ret + 1;
+                        ret = uart_sddf_putchar(temp);
                       }
                     }
 
@@ -265,20 +265,22 @@ If we have an IRQ, we will need to acknowledge on return to the notified functio
 val main = ‘
   if ch == 1 {
     handle_irq();
-    return;
+    return 1;
   }
 
   if ch == 8 {
     handle_tx();
+    return 1;
   }
 
   if ch == 10 {
     handle_rx();
+    return 1;
   }
 
 ’;
 
-val treeNotified = parse_pancake notified;
+val treeNotified = parse_pancake main;
 
 val addrTest = ‘if 2 >= 1 { x = 2; }’;
 
